@@ -43,16 +43,17 @@ def upload_file():
             try:
                 file.save(input_path)
                 
-                # Optimized FFmpeg command with lower memory usage
+                # Optimized FFmpeg command for faster processing
                 subprocess.run([
                     'ffmpeg', '-y',
                     '-i', input_path,
                     '-c:v', 'libx264',
-                    '-preset', 'ultrafast',
-                    '-tune', 'fastdecode',
-                    '-movflags', '+faststart',
+                    '-preset', 'veryfast',
+                    '-crf', '28',
+                    '-maxrate', '2M',
+                    '-bufsize', '2M',
                     '-threads', '2',
-                    '-memory_limit', '512M',
+                    '-movflags', '+faststart',
                     '-t', clip_type,
                     output_path
                 ], check=True)
