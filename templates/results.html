@@ -11,6 +11,12 @@
     <div class="container mt-5">
         <h1 class="text-center mb-4">Processing Results</h1>
 
+        <div class="progress mb-4">
+            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%">
+                <span id="progress-text">0%</span>
+            </div>
+        </div>
+
         {% if errors %}
         <div class="alert alert-danger">
             <h4>Errors:</h4>
@@ -42,5 +48,31 @@
             <a href="{{ url_for('index') }}" class="btn btn-secondary">Process More Videos</a>
         </div>
     </div>
+
+    <script>
+    const taskId = '{{ task_id }}';
+    
+    function checkProgress() {
+        fetch(`/progress/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                const progressBar = document.getElementById('progress-bar');
+                const progressText = document.getElementById('progress-text');
+                progressBar.style.width = data.progress + '%';
+                progressText.textContent = data.progress + '%';
+                
+                if (data.progress < 100 && data.progress >= 0) {
+                    setTimeout(checkProgress, 1000);
+                } else if (data.progress === -1) {
+                    progressBar.classList.add('bg-danger');
+                    progressText.textContent = 'Error';
+                } else if (data.progress === 100) {
+                    progressBar.classList.add('bg-success');
+                }
+            });
+    }
+    
+    checkProgress();
+    </script>
 </body>
 </html>
