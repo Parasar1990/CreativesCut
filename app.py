@@ -43,42 +43,21 @@ def upload_file():
             try:
                 file.save(input_path)
                 
-                if clip_type == 'full':
-                    # Get video duration using ffprobe
-                    duration_cmd = subprocess.run([
-                        'ffprobe', '-v', 'error', '-show_entries',
-                        'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1',
-                        input_path
-                    ], capture_output=True, text=True)
-                    
-                    total_duration = float(duration_cmd.stdout)
-                    clip_dur = int(clip_duration)
-                    
-                    # Generate multiple clips
-                    for start_time in range(0, int(total_duration), clip_dur):
-                        output_filename = f'clip_{start_time}_{filename}'
-                        output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
-                        
-                        subprocess.run([
-                            'ffmpeg', '-y',
-                            '-i', input_path,
-                            '-ss', str(start_time),
-                            '-t', str(clip_dur),
-                            output_path
-                        ], check=True)
-                        
-                        processed_files.append(output_filename)
-                else:
-                    # Extract first X seconds
-                    output_path = os.path.join(app.config['OUTPUT_FOLDER'], f'clip_{filename}')
-                    subprocess.run([
-                        'ffmpeg', '-y',
-                        '-i', input_path,
-                        '-t', clip_type,
-                        output_path
-                    ], check=True)
-                    
-                    processed_files.append(f'clip_{filename}')
+                # Optimized FFmpeg command with lower memory usage
+                subprocess.run([
+                    'ffmpeg', '-y',
+                    '-i', input_path,
+                    '-c:v', 'libx264',
+                    '-preset', 'ultrafast',
+                    '-tune', 'fastdecode',
+                    '-movflags', '+faststart',
+                    '-threads', '2',
+                    '-memory_limit', '512M',
+                    '-t', clip_type,
+                    output_path
+                ], check=True)
+                
+                processed_files.append(f'clip_{filename}')
                 
             except Exception as e:
                 errors.append(f"Error processing {filename}: {str(e)}")
