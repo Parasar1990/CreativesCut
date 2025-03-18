@@ -43,6 +43,9 @@ def upload_file():
             try:
                 file.save(input_path)
                 
+                # Define output path before FFmpeg command
+                output_path = os.path.join(app.config['OUTPUT_FOLDER'], f'clip_{filename}')
+                
                 # Optimized FFmpeg command for faster processing
                 subprocess.run([
                     'ffmpeg', '-y',
